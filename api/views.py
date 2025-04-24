@@ -10,6 +10,9 @@ from django.contrib.auth.models import User
 from .models import User, Project, Task, Comment
 from .permissions import IsAdminUser  # Custom permission class
 import logging
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from rest_framework.pagination import PageNumberPagination
 
 logger = logging.getLogger(__name__)
 
@@ -120,6 +123,14 @@ class AuthViewSet(viewsets.ViewSet):
         return Response({"message": "Please sign up and log in to continue."}, status=status.HTTP_200_OK)
 
 
+class StandardResultsSetPagination(PageNumberPagination):
+    """
+    Custom pagination class to handle large datasets efficiently.
+    """
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
 class ProjectViewSet(viewsets.ModelViewSet):
     """
     ViewSet for managing projects.
@@ -129,6 +140,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
+    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         """
@@ -164,6 +176,13 @@ class ProjectViewSet(viewsets.ModelViewSet):
             return Response({'error': 'You do not have permission to delete this project.'}, status=status.HTTP_403_FORBIDDEN)
         return super().destroy(request, *args, **kwargs)
 
+    @method_decorator(cache_page(60 * 15))  # Cache for 15 minutes
+    def list(self, request, *args, **kwargs):
+        """
+        Override the list method to add caching.
+        """
+        return super().list(request, *args, **kwargs)
+
 
 class TaskViewSet(viewsets.ModelViewSet):
     """
@@ -174,6 +193,7 @@ class TaskViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
+    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         """
@@ -209,6 +229,13 @@ class TaskViewSet(viewsets.ModelViewSet):
             return Response({'error': 'You do not have permission to delete this task.'}, status=status.HTTP_403_FORBIDDEN)
         return super().destroy(request, *args, **kwargs)
 
+    @method_decorator(cache_page(60 * 15))  # Cache for 15 minutes
+    def list(self, request, *args, **kwargs):
+        """
+        Override the list method to add caching.
+        """
+        return super().list(request, *args, **kwargs)
+
 
 class CommentViewSet(viewsets.ModelViewSet):
     """
@@ -219,6 +246,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
+    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         """
@@ -260,3 +288,10 @@ class CommentViewSet(viewsets.ModelViewSet):
         if request.user != comment.author and request.user.role != 'Admin':
             return Response({'error': 'You do not have permission to delete this comment.'}, status=status.HTTP_403_FORBIDDEN)
         return super().destroy(request, *args, **kwargs)
+
+    @method_decorator(cache_page(60 * 15))  # Cache for 15 minutes
+    def list(self, request, *args, **kwargs):
+        """
+        Override the list method to add caching.
+        """
+        return super().list(request, *args, **kwargs)
