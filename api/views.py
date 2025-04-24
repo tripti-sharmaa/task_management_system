@@ -20,8 +20,16 @@ class UserViewSet(viewsets.ModelViewSet):
     authentication_classes = [JWTAuthentication]
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAdminUser]  # Use the custom permission class
-    # If you want to customize any of the methods, you can override them here
+    permission_classes = [IsAdminUser]  # Ensure only Admins can access
+
+    def list(self, request, *args, **kwargs):
+        """
+        Override the list method to restrict access to Admins only.
+        """
+        if request.user.role != 'Admin':
+            return Response({'error': 'You do not have permission to view the user list.'}, status=status.HTTP_403_FORBIDDEN)
+        return super().list(request, *args, **kwargs)
+
     def create(self, request):
         # Check if the user is authenticated and has admin privileges before creating a new user
         if not request.user.is_authenticated:

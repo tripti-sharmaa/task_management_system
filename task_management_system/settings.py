@@ -153,3 +153,16 @@ SWAGGER_SETTINGS = {
     },
     'USE_SESSION_AUTH': False,
 }
+
+
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),  # Access token expires in 15 minutes
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),     # Refresh token expires in 7 days
+    'ROTATE_REFRESH_TOKENS': True,                  # Rotate refresh tokens on use
+    'BLACKLIST_AFTER_ROTATION': True,               # Blacklist old refresh tokens after rotation
+    'ALGORITHM': 'HS256',                           # Algorithm used for signing the tokens
+    'SIGNING_KEY': SECRET_KEY,                      # Secret key for signing tokens
+    'AUTH_HEADER_TYPES': ('Bearer',),               # Authorization header prefix
+}
