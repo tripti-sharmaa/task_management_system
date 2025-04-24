@@ -1,4 +1,4 @@
-from rest_framework import status, viewsets
+from rest_framework import status, viewsets, serializers
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -236,10 +236,12 @@ class CommentViewSet(viewsets.ModelViewSet):
         Ensure that either a task or a project is provided.
         Log the data being sent for debugging purposes.
         """
-        logger.debug(f"Comment creation data: {serializer.validated_data}")
+        logger.debug(f"Attempting to create comment with data: {serializer.validated_data}")
         if not serializer.validated_data.get('task') and not serializer.validated_data.get('project'):
-            raise serializer.ValidationError("A comment must be associated with either a task or a project.")
+            logger.error("Validation failed: A comment must be associated with either a task or a project.")
+            raise serializers.ValidationError("A comment must be associated with either a task or a project.")
         serializer.save(author=self.request.user)
+        logger.info("Comment created successfully.")
 
     def update(self, request, *args, **kwargs):
         """

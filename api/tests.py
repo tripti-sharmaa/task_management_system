@@ -61,7 +61,7 @@ class TaskManagementSystemTests(APITestCase):
 
     def test_user_login_and_authentication(self):
         """Test user login and authentication status."""
-        print("Testing user login and authentication...")
+        print("\n--- Testing user login and authentication ---")
         response = self.client.post('/api/auth/login/', {
             'email': 'admin@example.com',
             'password': 'adminpass'
@@ -84,7 +84,7 @@ class TaskManagementSystemTests(APITestCase):
 
     def test_project_crud_operations(self):
         """Test CRUD operations for projects."""
-        print("Testing project CRUD operations...")
+        print("\n--- Testing project CRUD operations ---")
         self.authenticate(self.admin_user)
 
         # Create a new project
@@ -142,7 +142,7 @@ class TaskManagementSystemTests(APITestCase):
 
     def test_task_crud_operations(self):
         """Test CRUD operations for tasks."""
-        print("Testing task CRUD operations...")
+        print("\n--- Testing task CRUD operations ---")
         self.authenticate(self.project_manager)
 
         # Create a new task
@@ -195,5 +195,47 @@ class TaskManagementSystemTests(APITestCase):
         # Delete the task
         response = self.client.delete(f'/api/tasks/{task_id}/')
         print(f"Request: DELETE /api/tasks/{task_id}/")
+        print("Response:", response.status_code)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_comment_crud_operations(self):
+        """Test CRUD operations for comments."""
+        print("\n--- Testing comment CRUD operations ---")
+        self.authenticate(self.developer)
+
+        # Create a new comment
+        response = self.client.post('/api/comments/', {
+            'content': 'New Comment',
+            'task': self.task.id
+        })
+        print("Request: POST /api/comments/", {
+            'content': 'New Comment',
+            'task': self.task.id
+        })
+        print("Response:", response.status_code, response.data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Retrieve the comment
+        comment_id = response.data['id']
+        response = self.client.get(f'/api/comments/{comment_id}/')
+        print(f"Request: GET /api/comments/{comment_id}/")
+        print("Response:", response.status_code, response.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Update the comment
+        response = self.client.put(f'/api/comments/{comment_id}/', {
+            'content': 'Updated Comment',
+            'task': self.task.id
+        })
+        print(f"Request: PUT /api/comments/{comment_id}/", {
+            'content': 'Updated Comment',
+            'task': self.task.id
+        })
+        print("Response:", response.status_code, response.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Delete the comment
+        response = self.client.delete(f'/api/comments/{comment_id}/')
+        print(f"Request: DELETE /api/comments/{comment_id}/")
         print("Response:", response.status_code)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
