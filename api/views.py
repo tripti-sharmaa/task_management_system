@@ -13,6 +13,10 @@ import logging
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.filters import SearchFilter
+from django_filters.rest_framework import DjangoFilterBackend
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 logger = logging.getLogger(__name__)
 
@@ -149,6 +153,9 @@ class ProjectViewSet(viewsets.ModelViewSet):
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
     pagination_class = StandardResultsSetPagination
+    filter_backends = [SearchFilter, DjangoFilterBackend]
+    search_fields = ['name', 'description']  # Enable search by name and description
+    filterset_fields = ['manager', 'members']  # Enable filtering by manager and members
 
     def get_queryset(self):
         """
@@ -185,9 +192,16 @@ class ProjectViewSet(viewsets.ModelViewSet):
         return super().destroy(request, *args, **kwargs)
 
     @method_decorator(cache_page(60 * 15))  # Cache for 15 minutes
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter('search', openapi.IN_QUERY, description="Search query", type=openapi.TYPE_STRING),
+            openapi.Parameter('manager', openapi.IN_QUERY, description="Filter by manager ID", type=openapi.TYPE_INTEGER),
+            openapi.Parameter('members', openapi.IN_QUERY, description="Filter by member ID", type=openapi.TYPE_INTEGER),
+        ]
+    )
     def list(self, request, *args, **kwargs):
         """
-        Override the list method to add caching.
+        Override the list method to add caching and document filter parameters.
         """
         return super().list(request, *args, **kwargs)
 
@@ -202,6 +216,9 @@ class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
     pagination_class = StandardResultsSetPagination
+    filter_backends = [SearchFilter, DjangoFilterBackend]
+    search_fields = ['title', 'description']  # Enable search by title and description
+    filterset_fields = ['status', 'priority', 'project', 'assigned_to']  # Enable filtering by status, priority, project, and assigned user
 
     def get_queryset(self):
         """
@@ -238,9 +255,18 @@ class TaskViewSet(viewsets.ModelViewSet):
         return super().destroy(request, *args, **kwargs)
 
     @method_decorator(cache_page(60 * 15))  # Cache for 15 minutes
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter('search', openapi.IN_QUERY, description="Search query", type=openapi.TYPE_STRING),
+            openapi.Parameter('status', openapi.IN_QUERY, description="Filter by task status", type=openapi.TYPE_STRING),
+            openapi.Parameter('priority', openapi.IN_QUERY, description="Filter by task priority", type=openapi.TYPE_STRING),
+            openapi.Parameter('project', openapi.IN_QUERY, description="Filter by project ID", type=openapi.TYPE_INTEGER),
+            openapi.Parameter('assigned_to', openapi.IN_QUERY, description="Filter by assigned user ID", type=openapi.TYPE_INTEGER),
+        ]
+    )
     def list(self, request, *args, **kwargs):
         """
-        Override the list method to add caching.
+        Override the list method to add caching and document filter parameters.
         """
         return super().list(request, *args, **kwargs)
 

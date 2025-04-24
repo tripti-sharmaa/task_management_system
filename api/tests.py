@@ -522,3 +522,103 @@ class TaggingTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['task'], self.task.id)
         self.assertIsNone(response.data['project'])
+
+class SearchAndFilterTests(APITestCase):
+    """
+    Test search and filtering functionality for tasks and projects.
+    """
+
+    def setUp(self):
+        """Set up test data for the tests."""
+        self.admin_user = User.objects.create_user(
+            email="admin@example.com",
+            password="adminpass",
+            name="Admin User",
+            role="Admin"
+        )
+
+        self.project1 = Project.objects.create(
+            name="Project Alpha",
+            description="Description for Project Alpha",
+            start_date="2025-04-01",
+            end_date="2025-04-30",
+            manager=self.admin_user
+        )
+
+        self.project2 = Project.objects.create(
+            name="Project Beta",
+            description="Description for Project Beta",
+            start_date="2025-05-01",
+            end_date="2025-05-31",
+            manager=self.admin_user
+        )
+
+        self.task1 = Task.objects.create(
+            title="Task Alpha",
+            description="Description for Task Alpha",
+            status="Pending",
+            priority="High",
+            project=self.project1,
+            assigned_to=self.admin_user
+        )
+
+        self.task2 = Task.objects.create(
+            title="Task Beta",
+            description="Description for Task Beta",
+            status="Completed",
+            priority="Low",
+            project=self.project2,
+            assigned_to=self.admin_user
+        )
+
+    def authenticate(self, user):
+        """Authenticate a user and set the authorization header."""
+        refresh = RefreshToken.for_user(user)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
+
+    def test_search_projects(self):
+        """Test search functionality for projects."""
+        print("\n--- Testing search functionality for projects ---")
+        self.authenticate(self.admin_user)
+
+        response = self.client.get('/api/projects/?search=Alpha')
+        print("Request: GET /api/projects/?search=Alpha")
+        print("Response:", response.status_code, response.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['name'], "Project Alpha")
+
+    def test_filter_projects(self):
+        """Test filtering functionality for projects."""
+        print("\n--- Testing filtering functionality for projects ---")
+        self.authenticate(self.admin_user)
+
+        response = self.client.get(f'/api/projects/?manager={self.admin_user.id}')
+        print(f"Request: GET /api/projects/?manager={self.admin_user.id}")
+        print("Response:", response.status_code, response.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['results']), 2)
+
+    def test_search_tasks(self):
+        """Test search functionality for tasks."""
+        print("\n--- Testing search functionality for tasks ---")
+        self.authenticate(self.admin_user)
+
+        response = self.client.get('/api/tasks/?search=Beta')
+        print("Request: GET /api/tasks/?search=Beta")
+        print("Response:", response.status_code, response.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['title'], "Task Beta")
+
+    def test_filter_tasks(self):
+        """Test filtering functionality for tasks."""
+        print("\n--- Testing filtering functionality for tasks ---")
+        self.authenticate(self.admin_user)
+
+        response = self.client.get('/api/tasks/?status=Pending')
+        print("Request: GET /api/tasks/?status=Pending")
+        print("Response:", response.status_code, response.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['title'], "Task Alpha")
