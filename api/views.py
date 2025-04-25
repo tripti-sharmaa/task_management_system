@@ -191,7 +191,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
             return Response({'error': 'You do not have permission to delete this project.'}, status=status.HTTP_403_FORBIDDEN)
         return super().destroy(request, *args, **kwargs)
 
-    @method_decorator(cache_page(60 * 15))  # Cache for 15 minutes
+    @method_decorator(cache_page(60 * 25))  # Cache for 15 minutes
     @swagger_auto_schema(
         manual_parameters=[
             openapi.Parameter('search', openapi.IN_QUERY, description="Search query", type=openapi.TYPE_STRING),
@@ -254,7 +254,7 @@ class TaskViewSet(viewsets.ModelViewSet):
             return Response({'error': 'You do not have permission to delete this task.'}, status=status.HTTP_403_FORBIDDEN)
         return super().destroy(request, *args, **kwargs)
 
-    @method_decorator(cache_page(60 * 15))  # Cache for 15 minutes
+    @method_decorator(cache_page(60 * 25))  # Cache for 15 minutes
     @swagger_auto_schema(
         manual_parameters=[
             openapi.Parameter('search', openapi.IN_QUERY, description="Search query", type=openapi.TYPE_STRING),
@@ -323,7 +323,7 @@ class CommentViewSet(viewsets.ModelViewSet):
             return Response({'error': 'You do not have permission to delete this comment.'}, status=status.HTTP_403_FORBIDDEN)
         return super().destroy(request, *args, **kwargs)
 
-    @method_decorator(cache_page(60 * 15))  # Cache for 15 minutes
+    @method_decorator(cache_page(60 * 25))  # Cache for 15 minutes
     def list(self, request, *args, **kwargs):
         """
         Override the list method to add caching.
