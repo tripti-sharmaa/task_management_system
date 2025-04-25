@@ -256,6 +256,23 @@ The Task Management System is a Django-based application designed to manage proj
 
 ---
 
+## Role-Based Access Control (RBAC)
+
+The project implements Role-Based Access Control (RBAC) to manage access to various resources based on user roles. Below are the key features:
+
+- **Admin**: Full access to all resources, including user management.
+- **Project Manager**: Access to projects and tasks they manage, with restricted access to user management.
+- **Developer**: Access to tasks and comments assigned to them, with restricted access to user and project management.
+- **Client**: View-only access to projects and tasks they are associated with.
+
+### Implementation Details
+
+- **Permissions**: Custom permissions are defined in `api/permissions.py`.
+- **ViewSets**: Role-based filtering and access control are implemented in `api/views.py` for `UserViewSet`, `ProjectViewSet`, and `CommentViewSet`.
+- **Testing**: Role-based access is tested in `api/tests.py` under the `RoleBasedAccessTests` class.
+
+---
+
 ## Future Development
 - Add more granular permissions for specific actions.
 - Implement notifications for task updates.
